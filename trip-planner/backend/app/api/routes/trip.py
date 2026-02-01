@@ -6,7 +6,7 @@ from ...models.schemas import (
     TripPlanResponse,
     ErrorResponse
 )
-from ...workflow.graph import get_trip_planner_workflow
+from ...workflow import get_trip_planner_workflow
 
 router = APIRouter(prefix="/trip", tags=["旅行规划"])
 
@@ -49,7 +49,7 @@ async def plan_trip(request: TripRequest):
         print("✅ 工作流执行完成")
 
         # 4. 从最终 State 中取结果
-        trip_plan = final_state.get("plan")
+        trip_plan = final_state.get("final_plan")
 
         return TripPlanResponse(
             success=True,

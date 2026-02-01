@@ -2,38 +2,46 @@
 
 from typing import List, Dict, Any, Optional
 from .mcp_tool import MCPTool
+from langchain_core.tools import BaseTool
 from ..config import get_settings
 from ..models.schemas import Location, POIInfo, WeatherInfo
 
 # 全局MCP工具实例
 _amap_mcp_tool = None
 
-
-def get_amap_mcp_tool() -> MCPTool:
+async def get_amap_mcp_tool() -> MCPTool:
     """
-    获取高德地图MCP工具实例(单例模式)
+    使用 LangChain MCPClient 获取高德地图 MCP 工具列表
+    异步获取高德地图MCP工具实例(单例模式)
     
     Returns:
         MCPTool实例
     """
     global _amap_mcp_tool
     
-    if _amap_mcp_tool is None:
-        settings = get_settings()
-        
-        if not settings.amap_api_key:
-            raise ValueError("高德地图API Key未配置,请在.env文件中设置AMAP_API_KEY")
-        
-        # 创建MCP工具
-        _amap_mcp_tool = MCPTool(
-            name="amap",
-            description="高德地图服务,支持POI搜索、路线规划、天气查询等功能",
-            server_command=["uvx", "amap-mcp-server"],
-            env={"AMAP_MAPS_API_KEY": settings.amap_api_key}
-        )
+    if _amap_mcp_tool is not None:
+        return _amap_mcp_tool
     
-    return _amap_mcp_tool
+    settings = get_settings()
+    
+    if not settings.amap_api_key:
+        raise ValueError("高德地图API Key未配置,请在.env文件中设置AMAP_API_KEY")
+    
+    # 创建MCP工具实例
+    _amap_mcp_tool = MCPTool()
+    
+    # 配置MCP服务器
+    server_config = {
+        "amap": {
+            "command": "uvx",
+            "args": ["amap-mcp-server"],
+            "env": {"AMAP_MAPS_API_KEY": settings.amap_api_key},
+            "transport": "stdio",
+        }
+    }
 
+    await _amap_mcp_tool.init_mcp_tools(server_config)
+    return _amap_mcp_tool
 
 class AmapService:
     """高德地图服务封装类"""
@@ -56,7 +64,7 @@ class AmapService:
         """
         try:
             # 调用MCP工具
-            result = self.mcp_tool.call({
+            result = self.mcp_tool.run({
                 "action": "call_tool",
                 "tool_name": "maps_text_search",
                 "arguments": {
