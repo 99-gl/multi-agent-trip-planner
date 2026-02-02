@@ -44,7 +44,7 @@ async def plan_trip(request: TripRequest):
 
         # 3. 执行工作流
         print("🚀 开始执行旅行规划工作流...")
-        final_state = workflow.invoke(initial_state)
+        final_state = await workflow.ainvoke(initial_state)
 
         print("✅ 工作流执行完成")
 

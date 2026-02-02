@@ -1,6 +1,6 @@
 # LLM.py
 import os
-from openai import OpenAI
+from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from typing import List, Dict, Optional
 
@@ -57,7 +57,12 @@ class LLM:
         if not self.api_key:
             raise ValueError("API密钥未提供")
         
-        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+        self.client = ChatOpenAI(
+            model=self.model,
+            temperature=0,
+            openai_api_key=self.api_key,
+            openai_api_base=self.base_url
+        )
 
     def think(self, messages: List[Dict[str, str]], temperature: float = 0) -> str:
         try:

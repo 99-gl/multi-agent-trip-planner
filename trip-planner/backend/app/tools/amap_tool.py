@@ -2,7 +2,6 @@
 
 from typing import List, Dict, Any, Optional
 from .mcp_tool import MCPTool
-from langchain_core.tools import BaseTool
 from ..config import get_settings
 from ..models.schemas import Location, POIInfo, WeatherInfo
 
